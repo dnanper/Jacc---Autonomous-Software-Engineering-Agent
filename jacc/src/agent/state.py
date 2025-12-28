@@ -66,6 +66,10 @@ class AgentState(TypedDict):
     step_count: int
     total_cost: float
     start_time: float
+    
+    # HINDLIGHT
+    global_guidelines: List[str]
+    local_summary: str
 
 
 def create_initial_state(
