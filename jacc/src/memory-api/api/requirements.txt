@@ -1,0 +1,58 @@
+# Memory API - Core Dependencies
+# This file is used by Docker for faster builds (pip install from requirements.txt)
+# For development, use: pip install -e ".[dev]" with pyproject.toml
+
+# ============================================
+# Database
+# ============================================
+asyncpg>=0.29.0
+sqlalchemy>=2.0.0
+alembic>=1.17.0
+pgvector>=0.4.1
+psycopg2-binary>=2.9.0
+greenlet>=3.0.0
+
+# ============================================
+# Web Framework
+# ============================================
+fastapi[standard]>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.0.0
+
+# ============================================
+# LLM Providers
+# ============================================
+openai>=1.0.0
+httpx>=0.27.0
+tiktoken>=0.7.0
+google-genai>=1.0.0
+
+# ============================================
+# Embeddings & ML
+# ============================================
+sentence-transformers>=3.0.0,<3.3.0
+transformers>=4.30.0,<4.46.0
+torch>=2.0.0
+numpy>=1.24.0
+
+# ============================================
+# Text Processing
+# ============================================
+langchain-text-splitters>=0.3.0
+
+# ============================================
+# Date/Time Processing
+# ============================================
+python-dateutil>=2.8.0
+dateparser>=1.2.0
+
+# ============================================
+# MCP (Model Context Protocol) Support
+# ============================================
+fastmcp>=2.3.0
+
+# ============================================
+# Utilities
+# ============================================
+python-dotenv>=1.0.0
+rich>=13.0.0

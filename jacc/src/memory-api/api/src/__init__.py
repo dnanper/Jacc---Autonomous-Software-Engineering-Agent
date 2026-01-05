@@ -19,7 +19,13 @@ from .config import (
     RerankerConfig,
     ServerConfig,
     RecallConfig,
+    MCPConfig,
+    DaemonConfig,
     OptimizationConfig,
+    # Defaults
+    DEFAULT_DISPOSITION,
+    DEFAULT_MCP_RETAIN_DESCRIPTION,
+    DEFAULT_MCP_RECALL_DESCRIPTION,
     # Backward compatibility
     HindsightConfig,
 )

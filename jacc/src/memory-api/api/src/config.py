@@ -21,9 +21,13 @@ logger = logging.getLogger(__name__)
 # Environment variable names
 # ============================================
 # Using MEMORY_API_ prefix for this project
-# Change to HINDSIGHT_API_ if you want compatibility with original
 
+# Database
 ENV_DATABASE_URL = "MEMORY_API_DATABASE_URL"
+ENV_DB_POOL_MIN = "MEMORY_API_DB_POOL_MIN"
+ENV_DB_POOL_MAX = "MEMORY_API_DB_POOL_MAX"
+
+# LLM
 ENV_LLM_PROVIDER = "MEMORY_API_LLM_PROVIDER"
 ENV_LLM_API_KEY = "MEMORY_API_LLM_API_KEY"
 ENV_LLM_MODEL = "MEMORY_API_LLM_MODEL"
@@ -31,53 +35,105 @@ ENV_LLM_BASE_URL = "MEMORY_API_LLM_BASE_URL"
 ENV_LLM_MAX_CONCURRENT = "MEMORY_API_LLM_MAX_CONCURRENT"
 ENV_LLM_TIMEOUT = "MEMORY_API_LLM_TIMEOUT"
 
+# Embeddings
 ENV_EMBEDDINGS_PROVIDER = "MEMORY_API_EMBEDDINGS_PROVIDER"
 ENV_EMBEDDINGS_LOCAL_MODEL = "MEMORY_API_EMBEDDINGS_LOCAL_MODEL"
 ENV_EMBEDDINGS_TEI_URL = "MEMORY_API_EMBEDDINGS_TEI_URL"
 
+# Reranker
 ENV_RERANKER_PROVIDER = "MEMORY_API_RERANKER_PROVIDER"
 ENV_RERANKER_LOCAL_MODEL = "MEMORY_API_RERANKER_LOCAL_MODEL"
 ENV_RERANKER_TEI_URL = "MEMORY_API_RERANKER_TEI_URL"
 
+# Server
 ENV_HOST = "MEMORY_API_HOST"
 ENV_PORT = "MEMORY_API_PORT"
 ENV_LOG_LEVEL = "MEMORY_API_LOG_LEVEL"
-ENV_MCP_ENABLED = "MEMORY_API_MCP_ENABLED"
-ENV_GRAPH_RETRIEVER = "MEMORY_API_GRAPH_RETRIEVER"
 
-# Database pool settings
-ENV_DB_POOL_MIN = "MEMORY_API_DB_POOL_MIN"
-ENV_DB_POOL_MAX = "MEMORY_API_DB_POOL_MAX"
+# MCP (Model Context Protocol)
+ENV_MCP_ENABLED = "MEMORY_API_MCP_ENABLED"
+ENV_MCP_LOCAL_BANK_ID = "MEMORY_API_MCP_LOCAL_BANK_ID"
+ENV_MCP_INSTRUCTIONS = "MEMORY_API_MCP_INSTRUCTIONS"
+
+# Recall/Search
+ENV_GRAPH_RETRIEVER = "MEMORY_API_GRAPH_RETRIEVER"
 
 # Optimization flags
 ENV_SKIP_LLM_VERIFICATION = "MEMORY_API_SKIP_LLM_VERIFICATION"
 ENV_LAZY_RERANKER = "MEMORY_API_LAZY_RERANKER"
 ENV_RUN_MIGRATIONS = "MEMORY_API_RUN_MIGRATIONS"
 
+# Daemon mode
+ENV_DAEMON_PORT = "MEMORY_API_DAEMON_PORT"
+ENV_IDLE_TIMEOUT = "MEMORY_API_IDLE_TIMEOUT"
+
 # ============================================
 # Default values
 # ============================================
-# Note: Changed from "pg0" to actual PostgreSQL URL for 2-container setup
+
+# Database
 DEFAULT_DATABASE_URL = "postgresql://memory:memory_secret@localhost:5432/memory_db"
+DEFAULT_DB_POOL_MIN = 5
+DEFAULT_DB_POOL_MAX = 20
+DEFAULT_DB_MAX_RETRIES = 3
+DEFAULT_DB_BASE_DELAY = 0.5  # seconds
+DEFAULT_DB_MAX_DELAY = 5.0  # seconds
+
+# LLM
 DEFAULT_LLM_PROVIDER = "openai"
 DEFAULT_LLM_MODEL = "gemini-2.5-flash"
 DEFAULT_LLM_MAX_CONCURRENT = 32
-DEFAULT_LLM_TIMEOUT = 120.0
+DEFAULT_LLM_TIMEOUT = 120.0  # seconds
+DEFAULT_LLM_SEED = 4242  # For reproducibility (Groq)
 
+# Embeddings
 DEFAULT_EMBEDDINGS_PROVIDER = "local"
 DEFAULT_EMBEDDINGS_LOCAL_MODEL = "BAAI/bge-small-en-v1.5"
 
+# Reranker
 DEFAULT_RERANKER_PROVIDER = "local"
 DEFAULT_RERANKER_LOCAL_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+# Server
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 8888
 DEFAULT_LOG_LEVEL = "info"
+
+# MCP (Model Context Protocol) - for LLM tool integration
 DEFAULT_MCP_ENABLED = True
+DEFAULT_MCP_LOCAL_BANK_ID = "mcp"
+DEFAULT_MCP_RETAIN_DESCRIPTION = """Store important information to long-term memory.
+
+Use this tool PROACTIVELY whenever the user shares:
+- Personal facts, preferences, or interests
+- Important events or milestones
+- User history, experiences, or background
+- Decisions, opinions, or stated preferences
+- Goals, plans, or future intentions
+- Relationships or people mentioned
+- Work context, projects, or responsibilities"""
+
+DEFAULT_MCP_RECALL_DESCRIPTION = """Search memories to provide personalized, context-aware responses.
+
+Use this tool PROACTIVELY to:
+- Check user's preferences before making suggestions
+- Recall user's history to provide continuity
+- Remember user's goals and context
+- Personalize responses based on past interactions"""
+
+# Recall/Search
 DEFAULT_GRAPH_RETRIEVER = "bfs"  # Options: "bfs", "mpfp"
 
-DEFAULT_DB_POOL_MIN = 5
-DEFAULT_DB_POOL_MAX = 20
+# Daemon mode
+DEFAULT_DAEMON_PORT = 8889
+DEFAULT_IDLE_TIMEOUT = 0  # 0 = no auto-exit
+
+# Disposition traits (for opinion formation)
+DEFAULT_DISPOSITION = {
+    "skepticism": 3,   # 1-5: How skeptical the agent is about new information
+    "literalism": 3,   # 1-5: How literally the agent interprets information
+    "empathy": 3,      # 1-5: How empathetic the agent is in responses
+}
 
 # Required embedding dimension for database schema
 EMBEDDING_DIMENSION = 384
@@ -135,6 +191,25 @@ class LLMConfig(BaseModel):
     base_url: str | None = Field(
         default_factory=lambda: os.getenv(ENV_LLM_BASE_URL) or None,
         description="Custom base URL for the LLM API"
+    )
+    max_concurrent: int = Field(
+        default_factory=lambda: int(os.getenv(ENV_LLM_MAX_CONCURRENT, str(DEFAULT_LLM_MAX_CONCURRENT))),
+        ge=1,
+        le=100,
+        description="Maximum concurrent LLM requests"
+    )
+    timeout: float = Field(
+        default_factory=lambda: float(os.getenv(ENV_LLM_TIMEOUT, str(DEFAULT_LLM_TIMEOUT))),
+        ge=1.0,
+        description="LLM request timeout in seconds"
+    )
+    seed: int = Field(
+        default=DEFAULT_LLM_SEED,
+        description="Seed for reproducibility (used by Groq)"
+    )
+    reasoning_effort: str = Field(
+        default="low",
+        description="Reasoning effort level for supported providers"
     )
     
     def get_base_url(self) -> str:
@@ -236,7 +311,66 @@ class RecallConfig(BaseModel):
         description="Graph retrieval algorithm: bfs or mpfp"
     )
 
-# New
+
+class MCPConfig(BaseModel):
+    """
+    MCP (Model Context Protocol) configuration.
+    
+    MCP is a protocol that allows LLMs to use external tools. Hindsight/Memory API 
+    exposes `retain` and `recall` as MCP tools, enabling LLM agents to store and 
+    retrieve memories during conversations.
+    """
+    
+    enabled: bool = Field(
+        default_factory=lambda: os.getenv(ENV_MCP_ENABLED, str(DEFAULT_MCP_ENABLED)).lower() == "true",
+        description="Enable MCP server"
+    )
+    local_bank_id: str = Field(
+        default_factory=lambda: os.getenv(ENV_MCP_LOCAL_BANK_ID, DEFAULT_MCP_LOCAL_BANK_ID),
+        description="Default bank ID for local MCP server"
+    )
+    instructions: str = Field(
+        default_factory=lambda: os.getenv(ENV_MCP_INSTRUCTIONS, ""),
+        description="Additional instructions to append to tool descriptions"
+    )
+    retain_description: str = Field(
+        default=DEFAULT_MCP_RETAIN_DESCRIPTION,
+        description="Description for the retain tool"
+    )
+    recall_description: str = Field(
+        default=DEFAULT_MCP_RECALL_DESCRIPTION,
+        description="Description for the recall tool"
+    )
+    
+    def get_retain_description(self) -> str:
+        """Get retain description with any additional instructions."""
+        if self.instructions:
+            return f"{self.retain_description}\n\nAdditional instructions: {self.instructions}"
+        return self.retain_description
+    
+    def get_recall_description(self) -> str:
+        """Get recall description with any additional instructions."""
+        if self.instructions:
+            return f"{self.recall_description}\n\nAdditional instructions: {self.instructions}"
+        return self.recall_description
+
+
+class DaemonConfig(BaseModel):
+    """Daemon mode configuration (background process)."""
+    
+    port: int = Field(
+        default_factory=lambda: int(os.getenv(ENV_DAEMON_PORT, str(DEFAULT_DAEMON_PORT))),
+        ge=1,
+        le=65535,
+        description="Port for daemon mode"
+    )
+    idle_timeout: int = Field(
+        default_factory=lambda: int(os.getenv(ENV_IDLE_TIMEOUT, str(DEFAULT_IDLE_TIMEOUT))),
+        ge=0,
+        description="Idle timeout in seconds before auto-exit (0 = no auto-exit)"
+    )
+
+
 class OptimizationConfig(BaseModel):
     """Optimization flags."""
     
@@ -264,6 +398,8 @@ class MemoryAPIConfig(BaseModel):
     reranker: RerankerConfig = Field(default_factory=RerankerConfig)
     server: ServerConfig = Field(default_factory=ServerConfig)
     recall: RecallConfig = Field(default_factory=RecallConfig)
+    mcp: MCPConfig = Field(default_factory=MCPConfig)
+    daemon: DaemonConfig = Field(default_factory=DaemonConfig)
     optimization: OptimizationConfig = Field(default_factory=OptimizationConfig)
     
     # Convenience aliases matching hindsight-api style

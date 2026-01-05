@@ -1,0 +1,228 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "memory-api"
+version = "0.1.0"
+description = "Memory System for AI Agents - Temporal, Semantic, and Entity Memory Architecture"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Memory API Team"}
+]
+keywords = ["memory", "ai", "agents", "llm", "embeddings", "vector-database", "postgresql", "pgvector"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # ============================================
+    # Database
+    # ============================================
+    "asyncpg>=0.29.0",              # Async PostgreSQL driver
+    "sqlalchemy>=2.0.0",            # ORM with async support
+    "alembic>=1.17.0",              # Database migrations
+    "pgvector>=0.4.1",              # PostgreSQL vector extension
+    "psycopg2-binary>=2.9.0",       # Sync PostgreSQL driver (for Alembic)
+    "greenlet>=3.0.0",              # Required for SQLAlchemy async
+    
+    # ============================================
+    # Web Framework
+    # ============================================
+    "fastapi[standard]>=0.115.0",   # Web framework with standard extras
+    "uvicorn>=0.30.0",              # ASGI server
+    "pydantic>=2.0.0",              # Data validation
+    
+    # ============================================
+    # LLM Providers
+    # ============================================
+    "openai>=1.0.0",                # OpenAI, Groq, Ollama (OpenAI-compatible)
+    "httpx>=0.27.0",                # HTTP client for async requests
+    "tiktoken>=0.7.0",              # Token counting for OpenAI models
+    "google-genai>=1.0.0",          # Google Gemini API
+    
+    # ============================================
+    # Embeddings & ML
+    # ============================================
+    "sentence-transformers>=3.0.0,<3.3.0",  # Local embeddings
+    "transformers>=4.30.0,<4.46.0",         # Hugging Face transformers
+    "torch>=2.0.0",                          # PyTorch backend
+    
+    # ============================================
+    # Text Processing
+    # ============================================
+    "langchain-text-splitters>=0.3.0",  # Document chunking
+    
+    # ============================================
+    # Date/Time Processing
+    # ============================================
+    "python-dateutil>=2.8.0",       # Date utilities
+    "dateparser>=1.2.0",            # Natural language date parsing
+    
+    # ============================================
+    # MCP (Model Context Protocol) Support
+    # ============================================
+    "fastmcp>=2.3.0",               # MCP server implementation
+    
+    # ============================================
+    # Utilities
+    # ============================================
+    "python-dotenv>=1.0.0",         # Environment variable loading
+    "rich>=13.0.0",                 # Rich terminal output
+    "numpy>=1.24.0",                # Numerical operations
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.0.0",          # Parallel test execution
+    "pytest-cov>=4.0.0",            # Coverage reporting
+    "filelock>=3.0.0",              # File locking for tests
+    
+    # Code quality
+    "ruff>=0.8.0",                  # Fast linter and formatter
+    "mypy>=1.8.0",                  # Type checking
+    
+    # Development utilities
+    "ipython>=8.0.0",               # Enhanced Python shell
+    "httpie>=3.0.0",                # HTTP client for testing
+]
+
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.24.0",
+]
+
+all = [
+    "memory-api[dev,docs]",
+]
+
+[project.scripts]
+memory-api = "src.main:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/memory-api"
+Documentation = "https://your-org.github.io/memory-api"
+Repository = "https://github.com/your-org/memory-api"
+Issues = "https://github.com/your-org/memory-api/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+# ============================================
+# Testing Configuration
+# ============================================
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+addopts = "--timeout 120 -v"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::RuntimeWarning:asyncio",
+    "ignore::DeprecationWarning:sentence_transformers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+# ============================================
+# Coverage Configuration
+# ============================================
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/alembic/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+# ============================================
+# Ruff Configuration (Linting & Formatting)
+# ============================================
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    "tests/",
+    "alembic/",
+    ".git/",
+    "__pycache__/",
+    "*.pyc",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "F401",   # unused imports (may be used for re-exports)
+    "F841",   # unused variable
+    "B008",   # function call in default argument (Depends pattern)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ============================================
+# MyPy Configuration (Type Checking)
+# ============================================
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+exclude = [
+    "tests/",
+    "alembic/",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "sentence_transformers.*",
+    "transformers.*",
+    "pgvector.*",
+    "fastmcp.*",
+    "dateparser.*",
+]
+ignore_missing_imports = true

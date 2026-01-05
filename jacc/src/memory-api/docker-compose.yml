@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL with pgvector
+  # ============================================
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: memory-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-memory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-memory_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-memory_db}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-memory} -d ${POSTGRES_DB:-memory_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - memory-network
+    restart: unless-stopped
+
+  # ============================================
+  # Memory API Service
+  # ============================================
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      args:
+        # Set to true to bake models into the Docker image (larger image, faster startup)
+        PRELOAD_MODELS: ${PRELOAD_MODELS:-false}
+    container_name: memory-api
+    environment:
+      # Database - uses container name 'database' as hostname
+      MEMORY_API_DATABASE_URL: postgresql://${POSTGRES_USER:-memory}:${POSTGRES_PASSWORD:-memory_secret}@database:5432/${POSTGRES_DB:-memory_db}
+      
+      # LLM Configuration
+      MEMORY_API_LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      MEMORY_API_LLM_API_KEY: ${LLM_API_KEY}
+      MEMORY_API_LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      MEMORY_API_LLM_BASE_URL: ${LLM_BASE_URL:-}
+      MEMORY_API_LLM_MAX_CONCURRENT: ${LLM_MAX_CONCURRENT:-32}
+      MEMORY_API_LLM_TIMEOUT: ${LLM_TIMEOUT:-120}
+      
+      # Embeddings
+      MEMORY_API_EMBEDDINGS_PROVIDER: ${EMBEDDINGS_PROVIDER:-local}
+      MEMORY_API_EMBEDDINGS_LOCAL_MODEL: ${EMBEDDINGS_MODEL:-BAAI/bge-small-en-v1.5}
+      MEMORY_API_EMBEDDINGS_TEI_URL: ${EMBEDDINGS_TEI_URL:-}
+      
+      # Reranker
+      MEMORY_API_RERANKER_PROVIDER: ${RERANKER_PROVIDER:-local}
+      MEMORY_API_RERANKER_LOCAL_MODEL: ${RERANKER_MODEL:-cross-encoder/ms-marco-MiniLM-L-6-v2}
+      MEMORY_API_RERANKER_TEI_URL: ${RERANKER_TEI_URL:-}
+      
+      # Server
+      MEMORY_API_HOST: 0.0.0.0
+      MEMORY_API_PORT: 8888
+      MEMORY_API_LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+      # MCP (Model Context Protocol) Configuration
+      MEMORY_API_MCP_ENABLED: ${MCP_ENABLED:-true}
+      MEMORY_API_MCP_LOCAL_BANK_ID: ${MCP_LOCAL_BANK_ID:-mcp}
+      MEMORY_API_MCP_INSTRUCTIONS: ${MCP_INSTRUCTIONS:-}
+      
+      # Daemon Mode
+      MEMORY_API_DAEMON_PORT: ${DAEMON_PORT:-8889}
+      MEMORY_API_IDLE_TIMEOUT: ${IDLE_TIMEOUT:-0}
+      
+      # Features
+      MEMORY_API_RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      MEMORY_API_GRAPH_RETRIEVER: ${GRAPH_RETRIEVER:-bfs}
+      
+      # Connection Pool
+      MEMORY_API_DB_POOL_MIN: ${DB_POOL_MIN:-5}
+      MEMORY_API_DB_POOL_MAX: ${DB_POOL_MAX:-20}
+      
+      # Optimization
+      MEMORY_API_SKIP_LLM_VERIFICATION: ${SKIP_LLM_VERIFICATION:-false}
+      MEMORY_API_LAZY_RERANKER: ${LAZY_RERANKER:-false}
+    ports:
+      - "${API_PORT:-8888}:8888"
+    volumes:
+      # Model cache to avoid re-downloading on container restart
+      - model_cache:/root/.cache/huggingface
+      - torch_cache:/root/.cache/torch
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - memory-network
+    restart: unless-stopped
+    # Uncomment for GPU support (NVIDIA)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # ============================================
+  # Optional: TEI Server for Embeddings
+  # ============================================
+  # Uncomment to use Text Embeddings Inference server instead of local models
+  # tei-embeddings:
+  #   image: ghcr.io/huggingface/text-embeddings-inference:latest
+  #   container_name: memory-tei-embeddings
+  #   command: --model-id BAAI/bge-small-en-v1.5 --port 8080
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - tei_cache:/data
+  #   networks:
+  #     - memory-network
+  #   restart: unless-stopped
+  #   # GPU support
+  #   # deploy:
+  #   #   resources:
+  #   #     reservations:
+  #   #       devices:
+  #   #         - driver: nvidia
+  #   #           count: 1
+  #   #           capabilities: [gpu]
+
+  # ============================================
+  # Optional: TEI Server for Reranking
+  # ============================================
+  # tei-reranker:
+  #   image: ghcr.io/huggingface/text-embeddings-inference:latest
+  #   container_name: memory-tei-reranker
+  #   command: --model-id cross-encoder/ms-marco-MiniLM-L-6-v2 --port 8081
+  #   ports:
+  #     - "8081:8081"
+  #   volumes:
+  #     - tei_reranker_cache:/data
+  #   networks:
+  #     - memory-network
+  #   restart: unless-stopped
+
+volumes:
+  pg_data:
+    name: memory-pg-data
+  model_cache:
+    name: memory-model-cache
+  torch_cache:
+    name: memory-torch-cache
+  # tei_cache:
+  #   name: memory-tei-cache
+  # tei_reranker_cache:
+  #   name: memory-tei-reranker-cache
+
+networks:
+  memory-network:
+    driver: bridge

@@ -180,7 +180,7 @@ def check_migration_status(
     Check current database schema version and latest available version.
 
     Args:
-        database_url: SQLAlchemy database URL. If None, uses HINDSIGHT_API_DATABASE_URL env var.
+        database_url: SQLAlchemy database URL. If None, uses MEMORY_API_DATABASE_URL env var.
         script_location: Path to alembic migrations directory. If None, uses default location.
 
     Returns:
@@ -194,10 +194,10 @@ def check_migration_status(
 
         # Get database URL
         if database_url is None:
-            database_url = os.getenv("HINDSIGHT_API_DATABASE_URL")
+            database_url = os.getenv("MEMORY_API_DATABASE_URL")
         if not database_url:
             logger.warning(
-                "Database URL not provided and HINDSIGHT_API_DATABASE_URL not set, cannot check migration status"
+                "Database URL not provided and MEMORY_API_DATABASE_URL not set, cannot check migration status"
             )
             return None, None
 
