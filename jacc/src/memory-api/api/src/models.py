@@ -2,11 +2,10 @@
 SQLAlchemy ORM models
 """
 
-# from dataclasses import dataclass
-from redis.cluster import PRIMARY
-from pydantic import BaseModel, Field
 from datetime import datetime
 from uuid import UUID as PyUUID
+
+from pydantic import BaseModel, Field
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (

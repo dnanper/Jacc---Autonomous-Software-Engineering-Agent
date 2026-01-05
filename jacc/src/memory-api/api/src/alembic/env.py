@@ -12,15 +12,23 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
-# Import your models here
-from hindsight_api.models import Base
+# Import your models here - using relative import from src directory
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import models
+src_dir = Path(__file__).parent.parent
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
+
+from models import Base
 
 
-# Load environment variables based on HINDSIGHT_API_DATABASE_URL env var or default to local
+# Load environment variables based on MEMORY_API_DATABASE_URL env var or default to local
 def load_env():
     """Load environment variables from .env"""
-    # Check if HINDSIGHT_API_DATABASE_URL is already set (e.g., by CI/CD)
-    if os.getenv("HINDSIGHT_API_DATABASE_URL"):
+    # Check if MEMORY_API_DATABASE_URL is already set (e.g., by CI/CD)
+    if os.getenv("MEMORY_API_DATABASE_URL"):
         return
 
     # Look for .env file in the parent directory (root of the workspace)
@@ -59,11 +67,11 @@ def get_database_url() -> str:
     # Get database URL from config (set programmatically) or environment
     database_url = config.get_main_option("sqlalchemy.url")
     if not database_url:
-        database_url = os.getenv("HINDSIGHT_API_DATABASE_URL")
+        database_url = os.getenv("MEMORY_API_DATABASE_URL")
         if not database_url:
             raise ValueError(
                 "Database URL not found. "
-                "Set HINDSIGHT_API_DATABASE_URL environment variable or pass database_url to run_migrations()."
+                "Set MEMORY_API_DATABASE_URL environment variable or pass database_url to run_migrations()."
             )
 
     # For migrations, use psycopg2 (sync driver) to avoid pgbouncer prepared statement issues
