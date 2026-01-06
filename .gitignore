@@ -1,5 +1,8 @@
 mini-swe-agent/
 test_output/
 tmp/
+tmp2/
 __pycache__/
 hindsight/
+.env
+*.env
