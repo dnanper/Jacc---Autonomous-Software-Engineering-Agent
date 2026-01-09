@@ -46,7 +46,7 @@ def create_mcp_server(memory: MemoryEngine) -> FastMCP:
     Returns:
         Configured FastMCP server instance
     """
-    mcp = FastMCP("hindsight-mcp-server")
+    mcp = FastMCP("memory-mcp-server")
 
     @mcp.tool()
     async def retain(content: str, context: str = "general") -> str:
@@ -122,6 +122,47 @@ def create_mcp_server(memory: MemoryEngine) -> FastMCP:
         except Exception as e:
             logger.error(f"Error searching: {e}", exc_info=True)
             return json.dumps({"error": str(e), "results": []})
+
+    @mcp.tool()
+    async def reflect(query: str, context: str | None = None) -> str:
+        """
+        Think and reason about a question using stored memories and knowledge.
+
+        Use this tool when the user asks for:
+        - Opinions or thoughts on a topic
+        - Analysis based on past conversations
+        - Synthesis of multiple pieces of information
+        - Recommendations based on known preferences
+        - Decisions that require weighing multiple factors
+
+        The system will:
+        1. Recall relevant facts, experiences, and opinions
+        2. Consider the bank's personality/disposition
+        3. Generate a thoughtful response grounded in memory
+
+        Args:
+            query: The question or topic to reflect on (e.g., "What do you think about remote work?")
+            context: Optional additional context to consider (e.g., "for a tech startup")
+        """
+        try:
+            bank_id = get_current_bank_id()
+            if bank_id is None:
+                return "Error: No bank_id configured"
+            
+            from src.engine.memory_engine import Budget
+
+            result = await memory.reflect_async(
+                bank_id=bank_id,
+                query=query,
+                budget=Budget.LOW,
+                context=context,
+                request_context=RequestContext(),
+            )
+
+            return result.text
+        except Exception as e:
+            logger.error(f"Error reflecting: {e}", exc_info=True)
+            return f"Error: {str(e)}"
 
     return mcp
 
