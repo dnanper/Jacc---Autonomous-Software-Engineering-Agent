@@ -41,6 +41,8 @@ from .models import (
     RequestContext,
 )
 
+from .engine.memory_engine import MemoryEngine
+
 __all__ = [
     # Config
     "MemoryAPIConfig",
@@ -64,6 +66,8 @@ __all__ = [
     "EntityCooccurrence",
     "MemoryLink",
     "RequestContext",
+    # Engine
+    "MemoryEngine",
 ]
 
 __version__ = "0.1.0"
