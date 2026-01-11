@@ -60,6 +60,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 # Copy application code
 COPY src/ ./src/
 COPY pyproject.toml .
+COPY README.md .
 
 # Install the package in editable mode
 RUN pip install --no-cache-dir -e .
@@ -89,4 +90,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
 # ====================================================
 # Run the API server
 # Can be overridden in docker-compose or docker run
-CMD ["python", "-m", "src.main"]
+CMD ["python", "-m", "src.server"]

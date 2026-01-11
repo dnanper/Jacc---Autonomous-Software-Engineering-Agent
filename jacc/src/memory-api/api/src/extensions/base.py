@@ -4,7 +4,7 @@ from abc import ABC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from hindsight_api.extensions.context import ExtensionContext
+    from src.extensions.context import ExtensionContext
 
 
 class Extension(ABC):

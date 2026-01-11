@@ -111,7 +111,7 @@ all = [
 ]
 
 [project.scripts]
-memory-api = "src.main:main"
+# memory-api = "src.main:main"  # CLI disabled - use uvicorn src.server:app
 
 [project.urls]
 Homepage = "https://github.com/your-org/memory-api"

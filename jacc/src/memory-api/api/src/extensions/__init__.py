@@ -15,12 +15,12 @@ Extensions receive an ExtensionContext that provides a controlled API for intera
 with the system (e.g., running migrations for tenant schemas).
 """
 
-from hindsight_api.extensions.base import Extension
-from hindsight_api.extensions.builtin import ApiKeyTenantExtension
-from hindsight_api.extensions.context import DefaultExtensionContext, ExtensionContext
-from hindsight_api.extensions.http import HttpExtension
-from hindsight_api.extensions.loader import load_extension
-from hindsight_api.extensions.operation_validator import (
+from src.extensions.base import Extension
+from src.extensions.builtin import ApiKeyTenantExtension
+from src.extensions.context import DefaultExtensionContext, ExtensionContext
+from src.extensions.http import HttpExtension
+from src.extensions.loader import load_extension
+from src.extensions.operation_validator import (
     OperationValidationError,
     OperationValidatorExtension,
     RecallContext,
@@ -31,12 +31,12 @@ from hindsight_api.extensions.operation_validator import (
     RetainResult,
     ValidationResult,
 )
-from hindsight_api.extensions.tenant import (
+from src.extensions.tenant import (
     AuthenticationError,
     TenantContext,
     TenantExtension,
 )
-from hindsight_api.models import RequestContext
+from src.models import RequestContext
 
 __all__ = [
     # Base

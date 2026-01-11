@@ -1,10 +1,8 @@
 """
-FastAPI server for Hindsight API.
+FastAPI server for Memory API.
 
 This module provides the ASGI app for uvicorn import string usage:
     uvicorn src.server:app
-
-For CLI usage, use the hindsight-api command instead.
 """
 
 import os
@@ -35,5 +33,5 @@ app = create_app(memory=_memory, http_api_enabled=True, mcp_api_enabled=config.m
 if __name__ == "__main__":
     # When run directly, start uvicorn
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=config.server_port)
+    uvicorn.run(app, host="0.0.0.0", port=config.port)
 

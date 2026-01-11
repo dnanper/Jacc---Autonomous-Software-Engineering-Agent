@@ -3,8 +3,6 @@ Utility functions for memory system.
 
 Core utilities for scoring, similarity calculation, and temporal processing.
 These functions are used throughout the engine for memory operations.
-
-Adapted from hindsight-api for memory-api.
 """
 
 import logging

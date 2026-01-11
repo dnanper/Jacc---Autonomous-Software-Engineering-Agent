@@ -1,5 +1,5 @@
 """
-Unified API module for Hindsight.
+Unified API module for Memory API.
 
 Provides both HTTP REST API and MCP (Model Context Protocol) server.
 """
@@ -22,7 +22,7 @@ def create_app(
     initialize_memory: bool = True,
 ) -> FastAPI:
     """
-    Create and configure the unified Hindsight API application.
+    Create and configure the unified Memory API application.
 
     Args:
         memory: MemoryEngine instance (already initialized with required parameters).
@@ -54,7 +54,7 @@ def create_app(
         logger.info("HTTP REST API enabled")
     else:
         # Create minimal FastAPI app
-        app = FastAPI(title="Hindsight API", version="0.0.7")
+        app = FastAPI(title="Memory API", version="0.0.7")
         logger.info("HTTP REST API disabled")
 
     # Mount MCP server if enabled

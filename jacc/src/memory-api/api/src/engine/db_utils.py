@@ -1,7 +1,5 @@
 """
 Database utility functions for connection management with retry logic.
-
-Adapted from hindsight-api for memory-api.
 """
 
 import asyncio

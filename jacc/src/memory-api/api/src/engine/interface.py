@@ -10,9 +10,9 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from hindsight_api.engine.memory_engine import Budget
-    from hindsight_api.engine.response_models import RecallResult, ReflectResult
-    from hindsight_api.models import RequestContext
+    from src.engine.memory_engine import Budget
+    from src.engine.response_models import RecallResult, ReflectResult
+    from src.models import RequestContext
 
 
 class MemoryEngineInterface(ABC):

@@ -8,7 +8,7 @@ Available built-in extensions:
     - ApiKeyTenantExtension: Simple API key validation with public schema
 
 Example usage:
-    API_TENANT_EXTENSION=hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension
+    API_TENANT_EXTENSION=src.extensions.builtin.tenant:ApiKeyTenantExtension
 """
 
 from src.extensions.builtin.tenant import ApiKeyTenantExtension

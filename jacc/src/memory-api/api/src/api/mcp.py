@@ -1,4 +1,4 @@
-"""Hindsight MCP Server implementation using FastMCP."""
+"""Memory API MCP Server implementation using FastMCP."""
 
 import json
 import logging
@@ -11,8 +11,8 @@ from src import MemoryEngine
 from src.engine.response_models import VALID_RECALL_FACT_TYPES
 from src.models import RequestContext
 
-# Configure logging from HINDSIGHT_API_LOG_LEVEL environment variable
-_log_level_str = os.environ.get("HINDSIGHT_API_LOG_LEVEL", "info").lower()
+# Configure logging from MEMORY_API_LOG_LEVEL environment variable
+_log_level_str = os.environ.get("MEMORY_API_LOG_LEVEL", "info").lower()
 _log_level_map = {
     "critical": logging.CRITICAL,
     "error": logging.ERROR,
@@ -38,7 +38,7 @@ def get_current_bank_id() -> str | None:
 
 def create_mcp_server(memory: MemoryEngine) -> FastMCP:
     """
-    Create and configure the Hindsight MCP server.
+    Create and configure the Memory API MCP server.
 
     Args:
         memory: MemoryEngine instance (required)

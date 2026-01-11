@@ -860,7 +860,7 @@ def create_app(
                 Migrations are controlled by the MemoryEngine's run_migrations parameter.
         initialize_memory: Whether to initialize memory system on startup (default: True)
         http_extension: Optional HTTP extension to mount custom endpoints under /extension/.
-                       If None, attempts to load from HINDSIGHT_API_HTTP_EXTENSION env var.
+                       If None, attempts to load from MEMORY_API_HTTP_EXTENSION env var.
 
     Returns:
         Configured FastAPI application
@@ -884,7 +884,7 @@ def create_app(
         """
         # Initialize OpenTelemetry metrics
         try:
-            prometheus_reader = initialize_metrics(service_name="hindsight-api", service_version="1.0.0")
+            prometheus_reader = initialize_metrics(service_name="memory-api", service_version="1.0.0")
             create_metrics_collector()
             app.state.prometheus_reader = prometheus_reader
             logging.info("Metrics initialized - available at /metrics endpoint")
@@ -917,9 +917,9 @@ def create_app(
     from src import __version__
 
     app = FastAPI(
-        title="Hindsight HTTP API",
+        title="Memory HTTP API",
         version=__version__,
-        description="HTTP API for Hindsight",
+        description="HTTP API for Memory System",
         contact={
             "name": "Memory System",
         },

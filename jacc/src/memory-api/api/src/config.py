@@ -4,7 +4,7 @@ Centralized configuration for Memory API.
 All environment variables and their defaults are defined here.
 Uses Pydantic for validation and type safety.
 
-Based on hindsight-api/config.py but adapted for 2-container architecture
+Based on src/config.py but adapted for 2-container architecture
 (separate PostgreSQL container instead of embedded pg0).
 """
 
@@ -389,7 +389,7 @@ class MemoryAPIConfig(BaseModel):
     Main configuration container for Memory API.
     
     Combines all sub-configurations and provides helper methods.
-    This is the Pydantic equivalent of HindsightConfig from hindsight-api.
+    This is the Pydantic equivalent of HindsightConfig from src.
     """
     
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
@@ -402,7 +402,7 @@ class MemoryAPIConfig(BaseModel):
     daemon: DaemonConfig = Field(default_factory=DaemonConfig)
     optimization: OptimizationConfig = Field(default_factory=OptimizationConfig)
     
-    # Convenience aliases matching hindsight-api style
+    # Convenience aliases matching style
     @property
     def database_url(self) -> str:
         return self.database.url
@@ -542,5 +542,5 @@ def get_config() -> MemoryAPIConfig:
     return MemoryAPIConfig.from_env()
 
 
-# Backward compatibility alias (matches hindsight-api naming)
+# Backward compatibility alias (matches naming)
 HindsightConfig = MemoryAPIConfig
